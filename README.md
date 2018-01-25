@@ -13,11 +13,11 @@ SPL is a communication technology designed to:
 
 SPLGroundControl is a MAVLink proxy server for ArduPilot drones that uses Iridium sort burst data (ISBD) satellite communication system provided by [RockBLOCK](http://www.rock7mobile.com/products-rockblock) unit. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing two way communication channel between ArduPilot based drones and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
 
-### SPLGroundControl Installation and Use
+### SPL GroundControl Installation and Use
 
-The machine that runs SPLGroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.
+The machine that runs SPL GroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.
 
-SPLGroundControl installation instructions for different environments are available on [wiki](https://github.com/envirover/SPLGroundControl/wiki) pages. Probably the easiest way to get started with SPLGroundControl is to [deploy it on Amazon AWS](https://github.com/envirover/SPLGroundControl/wiki/SPLGroundControl-Installation-on-Amazon-AWS).
+SPL GroundControl installation and operation instructions are available on [Envirover docs](http://envirover.com/docs/spl.html). Probably the easiest way to get started with SPL GroundControl is to [install it on Amazon Web Services](http://envirover.com/docs/splgroundcontrol-aws.html).
 
 Once SPLGroundControl is started, you can connect to it from MAVProxy, Mission Planer, or QGroundControl using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
 
@@ -25,9 +25,9 @@ Once SPLGroundControl is started, you can connect to it from MAVProxy, Mission P
 
 Currently SPLGroundControl supports one GCS client connection at a time.
 
-## SPLStream and SPLTracks
+## SPL Stream and SPL Tracks
 
-SPLStream and SPLTracks web services provide a solution for storing and visualizing data reported by SPLRadioRoom. See [SPLStream and SPLTracks wiki page](https://github.com/envirover/SPLGroundControl/wiki/SPLStream-and-SPLTracks-Web-Services) for more information on deployment and use of these web services.
+SPL Stream and SPL Tracks web services provide a solution for storing and visualizing data reported by SPL RadioRoom. See [Envirover docs](http://envirover.com/docs/spltracks-aws.html) for more information about installation and use of these web services.
 
 ## Issues
 
@@ -40,7 +40,7 @@ Envirover welcomes contributions from anyone and everyone. Please see our [guide
 Licensing
 ---------
 ```
-Copyright (C) 2017 Envirover
+Copyright (C) 2018 Envirover
 
 SPLGroundControl is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

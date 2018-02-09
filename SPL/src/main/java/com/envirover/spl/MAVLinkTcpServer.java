@@ -121,6 +121,7 @@ public class MAVLinkTcpServer {
                         Thread.sleep(10);
                     } catch (InterruptedException | IOException e) {
                         try {
+                            e.printStackTrace();
                             session.onClose();
                         } catch (InterruptedException e1) {
                             e1.printStackTrace();

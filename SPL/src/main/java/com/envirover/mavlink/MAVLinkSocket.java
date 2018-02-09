@@ -49,7 +49,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private final DataOutputStream out;
 
     private int seq = 0;
-    private boolean is_open;
+    private boolean is_open = true;
 
     /**
      * Constructs instance of MAVLinkSocket.

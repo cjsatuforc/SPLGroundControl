@@ -73,7 +73,7 @@ public class Config {
     private final static Integer DEFAULT_ROCKBLOCK_PORT = 8080;
     private final static Integer DEFAULT_MAVLINK_PORT   = 5760;
     private final static Integer DEFAULT_WS_PORT        = 8000;
-    private final static Integer DEFAULT_QUEUE_SIZE     = 10;
+    private final static Integer DEFAULT_QUEUE_SIZE     = 500;
     private final static Integer DEFAULT_HEARTBEAT_INT  = 1000;
     private final static Short   DEFAULT_AUTOPILOT      = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
     private final static Short   DEFAULT_MAV_TYPE       = MAV_TYPE.MAV_TYPE_GROUND_ROVER;

@@ -21,7 +21,7 @@ import com.envirover.mavlink.MAVLinkWebSocket;
 @ServerEndpoint("/ws")
 public class WSEndpoint {
 
-    private static Map<String, ClientSession> sessions = new HashMap<String, ClientSession>();
+    private static Map<String, MAVLinkClientSession> sessions = new HashMap<String, MAVLinkClientSession>();
     private static MAVLinkChannel mtMessageQueue = null;
 
     public static void setMTQueue(MAVLinkChannel queue) {
@@ -35,7 +35,7 @@ public class WSEndpoint {
     public void onOpen(Session session) {
         System.out.printf("WebSocket session opened, id: %s%n", session.getId());
 
-        ClientSession clientSession = new ClientSession(new MAVLinkWebSocket(session), mtMessageQueue);
+        MAVLinkClientSession clientSession = new MAVLinkClientSession(new MAVLinkWebSocket(session), mtMessageQueue);
         clientSession.onOpen();
         sessions.put(session.getId(), clientSession);
     }

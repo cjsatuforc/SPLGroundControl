@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
-  "Description" : "AWS CloudFormation template for SPL Ground Control MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Description" : "AWS CloudFormation template for SPL Ground Control server. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
   "Parameters" : {
     "KeyName" : {
       "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
@@ -110,7 +110,7 @@
     "SecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-        "GroupDescription" : "Enable HTTP access on port 8080, MAVLink access on port 5760, and SSH access on port 22",
+        "GroupDescription" : "Enable HTTP access on port 8080, MAVLink GCS access on ports 5757/5760, and SSH access on port 22",
         "SecurityGroupIngress" : [ {
           "IpProtocol" : "tcp",
           "FromPort" : "8080",
@@ -118,8 +118,22 @@
           "CidrIp" : "0.0.0.0/0"
         }, {
           "IpProtocol" : "tcp",
+          "FromPort" : "8000",
+          "ToPort" : "8000",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        }, {
+          "IpProtocol" : "tcp",
           "FromPort" : "5760",
           "ToPort" : "5760",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "5757",
+          "ToPort" : "5757",
           "CidrIp" : {
             "Ref" : "ClientCIDR"
           }

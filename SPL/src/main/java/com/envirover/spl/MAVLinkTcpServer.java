@@ -1,3 +1,27 @@
+/*
+This file is part of SPL GroundControl application.
+
+SPL GroundControl is a ground control proxy station for ArduPilot rovers with
+RockBLOCK satellite communication.
+
+See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
+
+Copyright (C) 2017 Envirover
+
+SPLGroundControl is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+SPLGroundControl is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with SPLGroundControl.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package com.envirover.spl;
 
 import java.io.IOException;
@@ -15,7 +39,7 @@ import com.envirover.mavlink.MAVLinkSocket;
 
 /**
  * MAVLink TCP server that accepts connections from TCP GCS clients.
- * {@link com.envirover.spl.MAVLinksession} is created for each client connection. 
+ * {@link com.envirover.spl.MAVLinkClientSession} is created for each client connection. 
  *  
  * @author pavel
  *
@@ -64,6 +88,10 @@ public class MAVLinkTcpServer {
         serverSocket.close();
     }
 
+    protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
+        return new MAVLinkClientSession(clientSocket, mtMessageQueue);
+    }
+
     /**
      * Accepts socket connections. 
      * 
@@ -79,7 +107,7 @@ public class MAVLinkTcpServer {
                     Socket socket = serverSocket.accept();
 
                     MAVLinkSocket clientSocket = new MAVLinkSocket(socket);
-                    ClientSession session = new ClientSession(clientSocket, mtMessageQueue);
+                    ClientSession session = createClientSession(clientSocket);
                     session.onOpen();
 
                     threadPool.execute(new SocketListener(clientSocket, session));

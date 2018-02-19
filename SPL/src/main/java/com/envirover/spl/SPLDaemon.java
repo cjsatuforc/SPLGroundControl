@@ -51,12 +51,9 @@ public class SPLDaemon implements Daemon {
 
     private final Config config = Config.getInstance();
     private MAVLinkTcpServer tcpServer = null;
+    private ShadowTcpServer shadowServer = null;
     private HttpServer httpServer = null;
-    //private Thread moMsgPumpThread = null;
-    //private Thread mtHandlerThread = null;
     private Thread mtMsgPumpThread = null;
-    //private Timer  reportStateTimer = null;
-    //private TimerTask reportStateTask = null;
     private Server wsServer;
 
     @Override
@@ -80,6 +77,8 @@ public class SPLDaemon implements Daemon {
 
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
         tcpServer = new MAVLinkTcpServer(config.getMAVLinkPort(), mtMessageQueue);
+
+        shadowServer = new ShadowTcpServer(config.getShadowPort());
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
@@ -114,6 +113,7 @@ public class SPLDaemon implements Daemon {
         httpServer.start();
         mtMsgPumpThread.start();
         tcpServer.start();
+        shadowServer.start();
         wsServer.start();
 
         Thread.sleep(1000);
@@ -129,6 +129,7 @@ public class SPLDaemon implements Daemon {
 
         httpServer.stop(0);
 
+        shadowServer.stop();
         tcpServer.stop();
         wsServer.stop();
 

@@ -264,11 +264,11 @@
     },
     "MAVLinkClientURL" : {
       "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5760" ] ] },
-      "Description" : "MAVLink client TCP/IP connection URL"
+      "Description" : "GCS client TCP/IP connection URL"
     },
-    "MAVProxyCMD" : {
-      "Value" : { "Fn::Join" : [ "", [ "mavproxy.py --master tcp:", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5760 --mav10" ] ] },
-      "Description" : "Sample MAVProxy command line"
+    "ShadowClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5757" ] ] },
+      "Description" : "GCS client TCP/IP connection URL used to update parameters and missions in the reported state of the vehicle's shadow."
     },
     "CloudWatchLogs" : {
       "Value" : { "Fn::Join" : [ "", [ "https://console.aws.amazon.com/cloudwatch/home?region=", { "Ref" : "AWS::Region" }, "#logStream:group=", { "Ref" : "LogGroup" } ] ] },

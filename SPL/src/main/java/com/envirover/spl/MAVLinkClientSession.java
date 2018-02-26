@@ -98,6 +98,7 @@ public class MAVLinkClientSession implements ClientSession {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException e) {
+                    dst.close();
                 }
             }
         };

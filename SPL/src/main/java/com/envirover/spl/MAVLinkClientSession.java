@@ -92,7 +92,16 @@ public class MAVLinkClientSession implements ClientSession {
      */
     @Override
     public void onOpen() {
-        TimerTask heartbeatTask = new HeartbeatTask(config.getAutopilot(), config.getMavType());
+        TimerTask heartbeatTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    reportState();
+                } catch (IOException | InterruptedException e) {
+                }
+            }
+        };
+
         heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
     }
 
@@ -122,7 +131,7 @@ public class MAVLinkClientSession implements ClientSession {
         }
     }
 
-    private void handleParams(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleParams(MAVLinkPacket packet) throws IOException, InterruptedException {
         if (packet == null) {
             return;
         }
@@ -159,7 +168,7 @@ public class MAVLinkClientSession implements ClientSession {
         }
     }
 
-    private void handleMissions(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleMissions(MAVLinkPacket packet) throws IOException, InterruptedException {
         if (packet == null) {
             return;
         }
@@ -239,7 +248,7 @@ public class MAVLinkClientSession implements ClientSession {
      * @throws IOException
      * @throws InterruptedException 
      */
-    private void handleCommand(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleCommand(MAVLinkPacket packet) throws IOException, InterruptedException {
         if (packet == null) {
             return;
         }
@@ -304,141 +313,112 @@ public class MAVLinkClientSession implements ClientSession {
             throw ex;
         }
     }
-
+    
     /**
-     * Sends heartbeats and status messages to the specified channel.  
-     * 
-     * Heartbeats and high-frequency messages such as SYS_STATUS, GPS_RAW_INT, ATTITUDE, 
-     * GLOBAL_POSITION_INT, MISSION_CURRENT, NAV_CONTROLLER_OUTPUT, and VFR_HUD are 
-     * derived form the HIGH_LATENCY message and sent to the destination channel.
-
-     * @author pavel
+     * Sends heartbeat and other status messages derived 
+     * from HIGH_LATENCY message to the specified client channel.
      *
+     * @param dst destination channel
+     * @throws IOException if a message sending failed
+     * @throws InterruptedException 
      */
-    public class HeartbeatTask extends TimerTask {
+    private synchronized void reportState() throws IOException, InterruptedException {
+        msg_high_latency msgHighLatency = MAVLinkShadow.getInstance().getHighLatencyMessage();
 
-        private final Short autopilot;
-        private final Short mavType;
-
-        public HeartbeatTask(Short autopilot, Short mavType) {
-            this.autopilot = autopilot;
-            this.mavType = mavType;
-        }
-
-        @Override
-        public void run() {
-            try {
-                reportState();
-            } catch (IOException | InterruptedException e) {
-                dst.close();
-            }
-        }
-
-        /**
-         * Sends heartbeat and other status messages derived 
-         * from HIGH_LATENCY message to the specified client channel.
-         *
-         * @param dst destination channel
-         * @throws IOException if a message sending failed
-         * @throws InterruptedException 
-         */
-        private void reportState() throws IOException, InterruptedException {
-            msg_high_latency msgHighLatency = MAVLinkShadow.getInstance().getHighLatencyMessage();
-
-            sendToSource(getHeartbeatMsg(msgHighLatency));
-            sendToSource(getSysStatusMsg(msgHighLatency));
-            sendToSource(getGpsRawIntMsg(msgHighLatency));
-            sendToSource(getAttitudeMsg(msgHighLatency));
-            sendToSource(getGlobalPositionIntMsg(msgHighLatency));
-            sendToSource(getMissionCurrentMsg(msgHighLatency));
-            sendToSource(getNavControllerOutputMsg(msgHighLatency));
-            sendToSource(getVfrHudMsg(msgHighLatency));
-        }
-
-        private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
-            msg_heartbeat msg = new msg_heartbeat();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.base_mode = msgHighLatency.base_mode;
-            msg.custom_mode = msgHighLatency.custom_mode;
-            msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-            msg.autopilot = autopilot;
-            msg.type = mavType;
-            return msg;
-        }
-
-        private MAVLinkMessage getSysStatusMsg(msg_high_latency msgHighLatency) {
-            msg_sys_status msg = new msg_sys_status();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
-            msg.voltage_battery = msgHighLatency.temperature * 1000;
-            msg.current_battery = msgHighLatency.temperature_air < 0 ? 
-                    -1 : (short)(msgHighLatency.temperature_air * 100);
-            return msg;
-        }
-
-        private MAVLinkMessage getGpsRawIntMsg(msg_high_latency msgHighLatency) {
-            msg_gps_raw_int msg = new msg_gps_raw_int();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.fix_type = msgHighLatency.gps_fix_type;
-            msg.satellites_visible = msgHighLatency.gps_nsat;
-            msg.lat = msgHighLatency.latitude;
-            msg.lon = msgHighLatency.longitude;
-            msg.alt = msgHighLatency.altitude_amsl;
-            return msg;
-        }
-
-        private MAVLinkMessage getAttitudeMsg(msg_high_latency msgHighLatency) {
-            msg_attitude msg = new msg_attitude();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.yaw = (float)Math.toRadians(msgHighLatency.heading / 100.0);
-            msg.pitch = (float)Math.toRadians(msgHighLatency.pitch / 100.0);
-            msg.roll = (float)Math.toRadians(msgHighLatency.roll / 100.0);
-            return msg;
-        }
-
-        private MAVLinkMessage getGlobalPositionIntMsg(msg_high_latency msgHighLatency) {
-            msg_global_position_int msg = new msg_global_position_int();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.alt = msgHighLatency.altitude_amsl;
-            msg.lat = msgHighLatency.latitude;
-            msg.lon = msgHighLatency.longitude;
-            msg.hdg = msgHighLatency.heading;
-            msg.relative_alt = msgHighLatency.altitude_sp;
-            return msg;
-        }
-
-        private MAVLinkMessage getMissionCurrentMsg(msg_high_latency msgHighLatency) {
-            msg_mission_current msg = new msg_mission_current();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.seq = msgHighLatency.wp_num;
-            return msg;
-        }
-
-        private MAVLinkMessage getNavControllerOutputMsg(msg_high_latency msgHighLatency) {
-            msg_nav_controller_output msg = new msg_nav_controller_output();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.nav_bearing = (short)(msgHighLatency.heading_sp / 100);
-            return msg;
-        }
-     
-        private MAVLinkMessage getVfrHudMsg(msg_high_latency msgHighLatency) {
-            msg_vfr_hud msg = new msg_vfr_hud();
-            msg.sysid = msgHighLatency.sysid;
-            msg.compid = msgHighLatency.compid;
-            msg.airspeed = msgHighLatency.airspeed;
-            msg.alt = msgHighLatency.altitude_amsl;
-            msg.climb = msgHighLatency.climb_rate;
-            msg.groundspeed = msgHighLatency.groundspeed;
-            msg.heading = (short)(msgHighLatency.heading / 100);
-            msg.throttle = msgHighLatency.throttle;
-            return msg;
-        }
+        sendToSource(getHeartbeatMsg(msgHighLatency));
+        sendToSource(getSysStatusMsg(msgHighLatency));
+        sendToSource(getGpsRawIntMsg(msgHighLatency));
+        sendToSource(getAttitudeMsg(msgHighLatency));
+        sendToSource(getGlobalPositionIntMsg(msgHighLatency));
+        sendToSource(getMissionCurrentMsg(msgHighLatency));
+        sendToSource(getNavControllerOutputMsg(msgHighLatency));
+        sendToSource(getVfrHudMsg(msgHighLatency));
     }
+
+    private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
+        msg_heartbeat msg = new msg_heartbeat();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.base_mode = msgHighLatency.base_mode;
+        msg.custom_mode = msgHighLatency.custom_mode;
+        msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
+        msg.autopilot = config.getAutopilot();
+        msg.type = config.getMavType();
+        return msg;
+    }
+
+    private MAVLinkMessage getSysStatusMsg(msg_high_latency msgHighLatency) {
+        msg_sys_status msg = new msg_sys_status();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
+        msg.voltage_battery = msgHighLatency.temperature * 1000;
+        msg.current_battery = msgHighLatency.temperature_air < 0 ? 
+                -1 : (short)(msgHighLatency.temperature_air * 100);
+        return msg;
+    }
+
+    private MAVLinkMessage getGpsRawIntMsg(msg_high_latency msgHighLatency) {
+        msg_gps_raw_int msg = new msg_gps_raw_int();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.fix_type = msgHighLatency.gps_fix_type;
+        msg.satellites_visible = msgHighLatency.gps_nsat;
+        msg.lat = msgHighLatency.latitude;
+        msg.lon = msgHighLatency.longitude;
+        msg.alt = msgHighLatency.altitude_amsl;
+        return msg;
+    }
+
+    private MAVLinkMessage getAttitudeMsg(msg_high_latency msgHighLatency) {
+        msg_attitude msg = new msg_attitude();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.yaw = (float)Math.toRadians(msgHighLatency.heading / 100.0);
+        msg.pitch = (float)Math.toRadians(msgHighLatency.pitch / 100.0);
+        msg.roll = (float)Math.toRadians(msgHighLatency.roll / 100.0);
+        return msg;
+    }
+
+    private MAVLinkMessage getGlobalPositionIntMsg(msg_high_latency msgHighLatency) {
+        msg_global_position_int msg = new msg_global_position_int();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.alt = msgHighLatency.altitude_amsl;
+        msg.lat = msgHighLatency.latitude;
+        msg.lon = msgHighLatency.longitude;
+        msg.hdg = msgHighLatency.heading;
+        msg.relative_alt = msgHighLatency.altitude_sp;
+        return msg;
+    }
+
+    private MAVLinkMessage getMissionCurrentMsg(msg_high_latency msgHighLatency) {
+        msg_mission_current msg = new msg_mission_current();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.seq = msgHighLatency.wp_num;
+        return msg;
+    }
+
+    private MAVLinkMessage getNavControllerOutputMsg(msg_high_latency msgHighLatency) {
+        msg_nav_controller_output msg = new msg_nav_controller_output();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.nav_bearing = (short)(msgHighLatency.heading_sp / 100);
+        return msg;
+    }
+ 
+    private MAVLinkMessage getVfrHudMsg(msg_high_latency msgHighLatency) {
+        msg_vfr_hud msg = new msg_vfr_hud();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
+        msg.airspeed = msgHighLatency.airspeed;
+        msg.alt = msgHighLatency.altitude_amsl;
+        msg.climb = msgHighLatency.climb_rate;
+        msg.groundspeed = msgHighLatency.groundspeed;
+        msg.heading = (short)(msgHighLatency.heading / 100);
+        msg.throttle = msgHighLatency.throttle;
+        return msg;
+    }
+
 }

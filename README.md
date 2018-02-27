@@ -31,7 +31,7 @@ SPL Stream and SPL Tracks web services provide a solution for storing and visual
 
 ## Issues
 
-Find a bug or want to request a new feature?  Please let us know by submitting an [issue](https://github.com/envirover/SPLGroundControl/issues).
+Find a bug or want to request a new feature?  Please let us know by submitting an [issue](https://github.com/envirover/support/issues).
 
 ## Contributing
 

@@ -48,6 +48,11 @@ import com.sun.jersey.api.view.Viewable;
 @Path("/")
 public class SPLFeatureService {
 
+    /* 
+     * Environment variables that specifies the default list of device IDs.
+     */
+    private final String ENV_SPL_DEVICES = "SPL_DEVICES";
+
     private final int MAVLINK_MSG_ID_HIGH_LATENCY = 234;
     
     private final MAVLinkMessagesTable stream;
@@ -76,6 +81,14 @@ public class SPLFeatureService {
             throws IOException, IllegalArgumentException, IllegalAccessException {
 
         FeatureCollection features = new FeatureCollection();
+
+        if (devices == null || devices.isEmpty()) {
+            devices = System.getenv(ENV_SPL_DEVICES);
+        }
+
+        if (devices == null || devices.isEmpty()) {
+            devices = System.getProperty(ENV_SPL_DEVICES, "");
+        }
 
         String[] deviceIds = devices.split(",");
 

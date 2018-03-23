@@ -38,7 +38,7 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
 
 /**
- * MAVLink TCP server that accepts connections from TCP GCS clients.
+ * MAVLink TCP server that accepts connections from TCP clients.
  * {@link com.envirover.spl.MAVLinkClientSession} is created for each client connection. 
  *  
  * @author pavel
@@ -112,7 +112,7 @@ public class MAVLinkTcpServer {
 
                     threadPool.execute(new SocketListener(clientSocket, session));
 
-                    logger.info(MessageFormat.format("GCS client ''{0}'' connected.", socket.getInetAddress()));
+                    logger.info(MessageFormat.format("TCP client ''{0}'' connected.", socket.getInetAddress()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -155,7 +155,7 @@ public class MAVLinkTcpServer {
                             e1.printStackTrace();
                         }
 
-                        logger.info("GCS client disconnected.");
+                        logger.info("TCP client disconnected.");
 
                         return;
                     }
